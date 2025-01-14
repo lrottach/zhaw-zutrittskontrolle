@@ -31,7 +31,7 @@ byte colPins[COLS] = {38, 40, 42, 44};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 // Constants
-const innt redLED = 4;
+const int redLED = 4;
 const int greenLED = 5;
 const int buzzer = 6;
 const String PIN_CODE = "1234";
