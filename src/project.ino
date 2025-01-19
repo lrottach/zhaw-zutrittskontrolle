@@ -1,5 +1,6 @@
 #include <Servo.h>
-#include <LiquidCrystal.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 #include <MFRC522.h>
 #include <Keypad.h>
 
@@ -10,9 +11,8 @@
 // Servo setup
 Servo myServo;
 
-// LCD Pins (non-I2C)
-// Initialisiere LCD mit den Pins (RS, E, D4, D5, D6, D7)
-LiquidCrystal lcd(41, 39, 37, 35, 33, 31);
+// I2C LCD Setup (Adresse 0x27, 16x2 Display)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // RFID setup
 MFRC522 mfrc522(SS_PIN, RST_PIN);
@@ -36,13 +36,21 @@ const int greenLED = 5;
 const int buzzer = 6;
 const String PIN_CODE = "1234";
 
-// Authorized RFID UIDs
+// Authorized RFID UIDs and corresponding usernames
 const String authorizedRFIDs[] = {"E36AFDFB", "A1B2C3D4", "33603030"};
+const String usernames[] = {"Alice", "Bob", "Charlie"};
 const int numRFIDs = sizeof(authorizedRFIDs) / sizeof(authorizedRFIDs[0]);
 
 // Variables
 String enteredPIN = "";
 int failedAttempts = 0;
+
+// === Funktionsprototypen ===
+int getUserIndex(String rfidUID);
+void welcomeUser(int userIndex);
+void grantAccess();
+void denyAccess();
+void triggerAlarm();
 
 void setup() {
   // Initialize components
@@ -52,22 +60,26 @@ void setup() {
   myServo.attach(3);
   myServo.write(0); // Servo in locked position
 
-  lcd.begin(16, 2);
+  lcd.init(); // LCD initialisieren
+  lcd.backlight(); // Hintergrundbeleuchtung einschalten
+  lcd.setCursor(0, 1);
+  lcd.print("System Ready");
+
   Serial.begin(9600);
 
   SPI.begin();
   mfrc522.PCD_Init();
 
   Serial.println("System initialized. Waiting for input...");
-  lcd.print("System Ready");
   delay(2000);
   lcd.clear();
 }
 
 void loop() {
-  lcd.setCursor(0, 0);
-  lcd.print("Scan RFID or");
+  // Standardanzeige
   lcd.setCursor(0, 1);
+  lcd.print("Scan RFID or");
+  lcd.setCursor(0, 2);
   lcd.print("Enter PIN:");
 
   // Check RFID
@@ -82,8 +94,10 @@ void loop() {
     Serial.print("RFID UID detected: ");
     Serial.println(rfidUID);
 
-    if (isAuthorizedRFID(rfidUID)) {
+    int userIndex = getUserIndex(rfidUID);
+    if (userIndex != -1) {
       Serial.println("Authorized RFID card. Access granted.");
+      welcomeUser(userIndex);
       grantAccess();
     } else {
       Serial.println("Unauthorized RFID card. Access denied.");
@@ -113,35 +127,40 @@ void loop() {
       }
       enteredPIN = ""; // Reset PIN after submission
     } else {
-      enteredPIN += key;
-      Serial.print("Current PIN: ");
-      Serial.println(enteredPIN);
-
-      lcd.setCursor(0, 1);
-      lcd.print("PIN: ");
-      lcd.print(enteredPIN);
+      enteredPIN += key; // Append key to entered PIN
     }
   }
 }
 
-bool isAuthorizedRFID(String rfid) {
+// Funktion zur Suche nach der UID in der Liste
+int getUserIndex(String rfidUID) {
   for (int i = 0; i < numRFIDs; i++) {
-    if (rfid == authorizedRFIDs[i]) {
-      return true;
+    if (authorizedRFIDs[i] == rfidUID) {
+      return i; // Return index of authorized user
     }
   }
-  return false;
+  return -1; // Not found
+}
+
+// Begrüssungsfunktion auf LCD
+void welcomeUser(int userIndex) {
+  lcd.clear();
+  lcd.setCursor(0, 1);
+  lcd.print("Welcome, ");
+  lcd.print(usernames[userIndex]);
+  delay(2000);
+  lcd.clear();
 }
 
 void grantAccess() {
   Serial.println("Access granted. Unlocking...");
   digitalWrite(greenLED, HIGH);
-  lcd.clear();
+  lcd.clear(); // Löscht das Display
+  lcd.setCursor(0, 1);
   lcd.print("Access Granted");
-  Serial.println("Green LED ON. Door unlocked.");
 
   myServo.write(90); // Unlock door
-  delay(10000);
+  delay(5000); // Tür bleibt 5 Sekunden offen
 
   myServo.write(0); // Lock door again
   Serial.println("Door locked.");
@@ -155,7 +174,8 @@ void denyAccess() {
   failedAttempts++;
   Serial.println("Access denied. Turning on red LED...");
   digitalWrite(redLED, HIGH);
-  lcd.clear();
+  lcd.clear(); // Löscht das Display
+  lcd.setCursor(0, 1);
   lcd.print("Access Denied");
 
   delay(2000);
@@ -164,15 +184,18 @@ void denyAccess() {
   Serial.println("Red LED OFF.");
   lcd.clear();
 
+  // Falls mehr als 3 Fehlversuche -> Alarm auslösen
   if (failedAttempts >= 3) {
     Serial.println("Too many failed attempts. Triggering alarm...");
     triggerAlarm();
   }
 }
 
+// Alarm-Funktion bei zu vielen Fehlversuchen
 void triggerAlarm() {
   Serial.println("ALARM triggered! Activating buzzer...");
   lcd.clear();
+  lcd.setCursor(0, 1);
   lcd.print("ALARM TRIGGERED!");
 
   for (int i = 0; i < 5; i++) {
