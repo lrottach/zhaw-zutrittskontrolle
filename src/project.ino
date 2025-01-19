@@ -1,23 +1,40 @@
+// === Bibliotheken ===
 #include <Servo.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <MFRC522.h>
 #include <Keypad.h>
 
-// Pins for RFID
+/*
+Projekt: Zutrittskontrollsystem mit RFID und PIN
+Autor: Project Team
+Datum: 21.01.2025
+Beschreibung:
+    Dieses Projekt implementiert ein Zutrittskontrollsystem mit mehreren Sicherheitsfunktionen:
+    - Authentifizierung durch RFID und PIN
+    - Zugangsanzeige über LEDs und ein LCD-Display
+    - Alarm bei wiederholten Fehlversuchen
+
+Hardware:
+    - siehe Readme.md
+
+Bibliotheken:
+    - LiquidCrystal_I2C.h: Ansteuerung des LCD-Displays
+    - Wire.h: I2C-Kommunikation
+    - MFRC522.h: RFID-Lesemodul
+    - Keypad.h: Tastenfeld
+*/
+
+// === Pin-Definitionen ===
 #define RST_PIN 9
 #define SS_PIN 10
 
-// Servo setup
-Servo myServo;
+// === Hardware-Setup ===
+Servo myServo; // Servo setup
+LiquidCrystal_I2C lcd(0x27, 16, 2); // I2C LCD Setup (Adresse 0x27, 16x2 Display)
+MFRC522 mfrc522(SS_PIN, RST_PIN); // RFID setup
 
-// I2C LCD Setup (Adresse 0x27, 16x2 Display)
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-// RFID setup
-MFRC522 mfrc522(SS_PIN, RST_PIN);
-
-// Keypad setup
+// === Keypad-Konfiguration ===
 const byte ROWS = 4;
 const byte COLS = 4;
 char keys[ROWS][COLS] = {
@@ -30,20 +47,18 @@ byte rowPins[ROWS] = {30, 32, 34, 36};
 byte colPins[COLS] = {38, 40, 42, 44};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
-// Constants
-const int redLED = 4;
-const int greenLED = 5;
-const int buzzer = 6;
-const String PIN_CODE = "1234";
+// === Konstanten und Variablen ===
+const int redLED = 4; // Rote LED
+const int greenLED = 5; // Grüne LED
+const int buzzer = 6;   // Buzzer
+const String PIN_CODE = "1234"; // Vordefinierter PIN-Code
 
-// Authorized RFID UIDs and corresponding usernames
-const String authorizedRFIDs[] = {"E36AFDFB", "A1B2C3D4", "33603030"};
-const String usernames[] = {"Alice", "Bob", "Charlie"};
+const String authorizedRFIDs[] = {"E36AFDFB", "A1B2C3D4", "33603030"}; // Zugelassene RFID-UIDs
+const String usernames[] = {"Alice", "Bob", "Charlie"}; // Benutzernamen
 const int numRFIDs = sizeof(authorizedRFIDs) / sizeof(authorizedRFIDs[0]);
 
-// Variables
-String enteredPIN = "";
-int failedAttempts = 0;
+String enteredPIN = ""; // Eingegebener PIN-Code
+int failedAttempts = 0; // Zähler für fehlgeschlagene Versuche
 
 // === Funktionsprototypen ===
 int getUserIndex(String rfidUID);
@@ -52,13 +67,13 @@ void grantAccess();
 void denyAccess();
 void triggerAlarm();
 
+// === Initialisierung der Hardware ===
 void setup() {
-  // Initialize components
   pinMode(greenLED, OUTPUT);
   pinMode(redLED, OUTPUT);
   pinMode(buzzer, OUTPUT);
   myServo.attach(3);
-  myServo.write(0); // Servo in locked position
+  myServo.write(0); // Tür verriegeln
 
   lcd.init(); // LCD initialisieren
   lcd.backlight(); // Hintergrundbeleuchtung einschalten
@@ -76,13 +91,13 @@ void setup() {
 }
 
 void loop() {
-  // Standardanzeige
+  // === Standardanzeige ===
   lcd.setCursor(0, 1);
   lcd.print("Scan RFID or");
   lcd.setCursor(0, 2);
   lcd.print("Enter PIN:");
 
-  // Check RFID
+  // === RFID-Überprüfung ===
   if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
     String rfidUID = "";
     for (byte i = 0; i < mfrc522.uid.size; i++) {
@@ -105,7 +120,7 @@ void loop() {
     }
   }
 
-  // Check PIN
+  // === PIN-Überprüfung ===
   char key = keypad.getKey();
   if (key) {
     Serial.print("Keypad input detected: ");
@@ -132,7 +147,9 @@ void loop() {
   }
 }
 
-// Funktion zur Suche nach der UID in der Liste
+// === Funktionen ===
+
+// UID prüfen und Index des Benutzers zurückgeben
 int getUserIndex(String rfidUID) {
   for (int i = 0; i < numRFIDs; i++) {
     if (authorizedRFIDs[i] == rfidUID) {
@@ -152,6 +169,7 @@ void welcomeUser(int userIndex) {
   lcd.clear();
 }
 
+// Zugang gewähren
 void grantAccess() {
   Serial.println("Access granted. Unlocking...");
   digitalWrite(greenLED, HIGH);
@@ -170,6 +188,7 @@ void grantAccess() {
   failedAttempts = 0; // Reset failed attempts
 }
 
+// Zugang verweigern
 void denyAccess() {
   failedAttempts++;
   Serial.println("Access denied. Turning on red LED...");
@@ -191,7 +210,7 @@ void denyAccess() {
   }
 }
 
-// Alarm-Funktion bei zu vielen Fehlversuchen
+// Alarm auslösen
 void triggerAlarm() {
   Serial.println("ALARM triggered! Activating buzzer...");
   lcd.clear();
