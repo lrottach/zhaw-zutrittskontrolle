@@ -23,6 +23,7 @@ Bibliotheken:
     - Wire.h: I2C-Kommunikation
     - MFRC522.h: RFID-Lesemodul
     - Keypad.h: Tastenfeld
+    - Servo.h: Servo Motor
 */
 
 // === Pin-Definitionen ===
