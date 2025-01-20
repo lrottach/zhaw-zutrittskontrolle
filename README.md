@@ -37,7 +37,7 @@ Ziel ist die Entwicklung eines flexiblen und sicheren Systems, das sich leicht i
 5. **Summer**
 6. **Servo-Motor**
 7. **LCD-Display (Modul I2C 20 x 4 LCD)**
-8. **Verkabelungsmaterial (Breadboard, Jumper-Kabel)**
+8. **Verkabelungsmaterial (Breadboard, Kabel)**
 
 ### Softwareanforderungen
 - **Arduino IDE**: Version 1.8.19 oder höher
