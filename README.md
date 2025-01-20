@@ -35,7 +35,7 @@ Ziel ist die Entwicklung eines flexiblen und sicheren Systems, das sich leicht i
 4. **LEDs (grün/rot)**
 5. **Summer**
 6. **Servo-Motor**
-7. **LCD-Display (optional, mit I2C)**
+7. **LCD-Display (I2C 20 x 4 LCD)**
 8. **Verkabelungsmaterial (Breadboard, Jumper-Kabel)**
 
 ### Softwareanforderungen
