@@ -7,7 +7,8 @@ Dieses Projekt realisiert ein Zutrittskontrollsystem mit folgenden Hauptfunktion
 - **PIN-Eingabe**: Alternativer Zugang über ein PIN-Tastenfeld.
 - **LED-Anzeige**: Grüne LED zeigt erfolgreiche Authentifizierung, rote LED signalisiert Fehler.
 - **Alarmfunktion**: Alarm wird nach drei fehlerhaften Versuchen ausgelöst, um Manipulationen zu erkennen.
-- **Hardwarekomponenten**: Aufbau mit Arduino-Mikrocontroller, RFID-Modul, Tastenfeld, LEDs, Summer und Servo-Motor.
+- **LCD-Display**: Ausgabe von Status, Informationen und Fehlermeldungen
+- **Hardwarekomponenten**: Aufbau mit Arduino-Mikrocontroller, RFID-Modul, Tastenfeld, LEDs, Summer, LCD-Display und Servo-Motor.
 
 ### Zielsetzung
 Ziel ist die Entwicklung eines flexiblen und sicheren Systems, das sich leicht installieren und verwenden lässt. Es bietet zwei Zugangsmethoden und schützt vor unberechtigtem Zugang durch eine integrierte Alarmfunktion.
@@ -35,7 +36,7 @@ Ziel ist die Entwicklung eines flexiblen und sicheren Systems, das sich leicht i
 4. **LEDs (grün/rot)**
 5. **Summer**
 6. **Servo-Motor**
-7. **LCD-Display (I2C 20 x 4 LCD)**
+7. **LCD-Display (Modul I2C 20 x 4 LCD)**
 8. **Verkabelungsmaterial (Breadboard, Jumper-Kabel)**
 
 ### Softwareanforderungen
