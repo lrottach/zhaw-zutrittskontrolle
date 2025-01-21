@@ -22,8 +22,8 @@ Ziel ist die Entwicklung eines flexiblen und sicheren Systems, das sich leicht i
 ├── /src
 │ └── project.ino  # Hauptcode für den Arduino
 ├── /docs
-│ └── schaltplan.png # Schaltplan für den Aufbau
-├── /assets │
+├── /assets
+│ └── schaltplan*.png # Schaltpläne für den Aufbau
 └── README.md # Diese Datei
 ```
 
